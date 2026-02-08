@@ -1,0 +1,41 @@
+name: Release Helm Charts
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "charts/**"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Package and push charts
+        run: |
+          for chart_dir in charts/*/; do
+            chart_name=$(basename "$chart_dir")
+            if [ -f "${chart_dir}Chart.yaml" ]; then
+              echo "Packaging ${chart_name}..."
+              helm package "$chart_dir" --destination .cr-release-packages
+              for pkg in .cr-release-packages/${chart_name}-*.tgz; do
+                echo "Pushing ${pkg}..."
+                helm push "$pkg" oci://ghcr.io/${{ github.repository_owner }}/helm-charts
+              done
+            fi
+          done
