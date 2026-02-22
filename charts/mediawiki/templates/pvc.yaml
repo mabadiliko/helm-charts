@@ -5,10 +5,13 @@ metadata:
   name: {{ include "mediawiki.fullname" . }}-uploads
   labels:
     {{- include "mediawiki.labels" . | nindent 4 }}
-  {{- with .Values.objectStore.pvc.annotations }}
   annotations:
+    {{- if .Values.objectStore.pvc.retain }}
+    helm.sh/resource-policy: keep
+    {{- end }}
+    {{- with .Values.objectStore.pvc.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   accessModes:
     {{- toYaml .Values.objectStore.pvc.accessModes | nindent 4 }}

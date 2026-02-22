@@ -8,12 +8,19 @@ data:
   LocalSettings.php: |
     <?php
     $wgSitename = "{{ .Values.site.name }}";
-    $wgServer = "{{ .Values.site.server }}";
+    $wgServer = "{{ if .Values.domain }}https://{{ .Values.domain }}{{ else }}{{ .Values.site.server }}{{ end }}";
     $wgScriptPath = "{{ .Values.site.scriptPath }}";
-    $wgLogo = "{{ .Values.site.logo }}";
+    {{- if .Values.site.logo }}
+    $wgLogos = [ '1x' => "{{ .Values.site.logo }}" ];
+    {{- end }}
 
+    {{- if .Values.site.existingSecret }}
+    $wgSecretKey = trim( file_get_contents( '/etc/mediawiki/secrets/site/secretKey' ) );
+    $wgUpgradeKey = trim( file_get_contents( '/etc/mediawiki/secrets/site/upgradeKey' ) );
+    {{- else }}
     $wgSecretKey = "{{ .Values.site.secretKey }}";
     $wgUpgradeKey = "{{ .Values.site.upgradeKey }}";
+    {{- end }}
 
     $wgDBserver = "{{ .Values.database.host }}";
     $wgDBname = "{{ .Values.database.name }}";

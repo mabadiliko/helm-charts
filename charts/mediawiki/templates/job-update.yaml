@@ -10,6 +10,9 @@ metadata:
     "helm.sh/hook-weight": "0"
     "helm.sh/hook-delete-policy": before-hook-creation
 spec:
+  {{- if .Values.job.update.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.job.update.ttlSecondsAfterFinished }}
+  {{- end }}
   backoffLimit: {{ .Values.job.update.backoffLimit }}
   template:
     metadata:
@@ -51,6 +54,11 @@ spec:
             {{- if .Values.oidc.existingSecret }}
             - name: oidc-secret
               mountPath: /etc/mediawiki/secrets/oidc
+              readOnly: true
+            {{- end }}
+            {{- if .Values.site.existingSecret }}
+            - name: site-secrets
+              mountPath: /etc/mediawiki/secrets/site
               readOnly: true
             {{- end }}
       volumes:
@@ -97,5 +105,15 @@ spec:
             items:
               - key: {{ .Values.oidc.secretKey }}
                 path: clientSecret
+        {{- end }}
+        {{- if .Values.site.existingSecret }}
+        - name: site-secrets
+          secret:
+            secretName: {{ .Values.site.existingSecret }}
+            items:
+              - key: {{ .Values.site.secretKeyRef }}
+                path: secretKey
+              - key: {{ .Values.site.upgradeKeyRef }}
+                path: upgradeKey
         {{- end }}
 {{- end }}

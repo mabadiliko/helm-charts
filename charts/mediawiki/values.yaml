@@ -1,5 +1,10 @@
 replicaCount: 1
 
+# domain is the single value to change per environment (e.g. "wiki.example.com").
+# It sets $wgServer (https://<domain>), the ingress host, and the TLS secret host.
+# When set, site.server and ingress.hosts/tls are ignored.
+domain: ""
+
 image:
   repository: docker.io/mediawiki
   tag: "1.45"
@@ -28,9 +33,10 @@ service:
   port: 80
 
 ingress:
-  enabled: false
+  enabled: true
   className: nginx
-  annotations: {}
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt"
   hosts:
     - host: wiki.local
       paths:
@@ -52,8 +58,13 @@ site:
   server: https://scoutwiki.local
   scriptPath: ""
   logo: ""
+  # Provide secretKey/upgradeKey either inline (convenient for local dev) or via a K8s Secret
+  # (recommended). If existingSecret is set, the inline values are ignored.
   secretKey: ""
   upgradeKey: ""
+  existingSecret: ""       # K8s Secret containing the keys below
+  secretKeyRef: "wiki-secret-key"    # key in the secret → $wgSecretKey
+  upgradeKeyRef: "wiki-upgrade-key"  # key in the secret → $wgUpgradeKey
 
 database:
   host: mariadb.mariadb.svc.cluster.local
@@ -87,6 +98,7 @@ objectStore:
     accessModes:
       - ReadWriteOnce
     size: 10Gi
+    retain: false
     annotations: {}
     mountPath: /var/www/html/images
 
@@ -107,3 +119,4 @@ job:
   update:
     enabled: true
     backoffLimit: 1
+    ttlSecondsAfterFinished: 3600  # 1 hour; set to 0 for immediate cleanup, null to disable

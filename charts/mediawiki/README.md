@@ -5,7 +5,7 @@ A Helm chart for deploying [MediaWiki](https://www.mediawiki.org/) to Kubernetes
 ## Install
 
 ```bash
-helm install my-wiki oci://ghcr.io/mabadiliko/helm-charts/mediawiki --version 0.1.0 \
+helm install my-wiki oci://ghcr.io/mabadiliko/helm-charts/mediawiki --version 0.3.0 \
   -f my-values.yaml
 ```
 

@@ -65,6 +65,11 @@ spec:
               mountPath: /etc/mediawiki/secrets/oidc
               readOnly: true
             {{- end }}
+            {{- if .Values.site.existingSecret }}
+            - name: site-secrets
+              mountPath: /etc/mediawiki/secrets/site
+              readOnly: true
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /api.php
@@ -125,4 +130,14 @@ spec:
             items:
               - key: {{ .Values.oidc.secretKey }}
                 path: clientSecret
+        {{- end }}
+        {{- if .Values.site.existingSecret }}
+        - name: site-secrets
+          secret:
+            secretName: {{ .Values.site.existingSecret }}
+            items:
+              - key: {{ .Values.site.secretKeyRef }}
+                path: secretKey
+              - key: {{ .Values.site.upgradeKeyRef }}
+                path: upgradeKey
         {{- end }}
