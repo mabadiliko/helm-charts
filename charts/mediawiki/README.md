@@ -34,7 +34,7 @@ helm install my-wiki ./charts/mediawiki -f my-values.yaml
 ```yaml
 image:
   repository: docker.io/mediawiki   # or your custom image with extensions
-  tag: "1.43"
+  tag: "1.45"
   pullPolicy: IfNotPresent
 ```
 
